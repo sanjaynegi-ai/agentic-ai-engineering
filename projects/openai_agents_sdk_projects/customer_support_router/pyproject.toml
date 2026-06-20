@@ -1,0 +1,15 @@
+[project]
+name = "customer-support-router-openai-agents-sdk"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["openai-agents>=0.17", "python-dotenv>=1", "pydantic>=2.10", "gradio>=6"]
+
+[dependency-groups]
+dev = ["pytest>=8.3", "ruff>=0.11"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/customer_support_router"]

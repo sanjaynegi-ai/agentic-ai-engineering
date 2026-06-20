@@ -1,0 +1,3 @@
+# AWS ECS Fargate with Terraform
+
+Fargate runs containers without managing EC2 worker nodes. The GitHub workflow uses OIDC, creates ECR through Terraform, builds or reuses an immutable image, and applies `infra/terraform/ecs`. That stack creates the ECS cluster, task/service, IAM roles, CloudWatch log group, Container Insights, CPU/memory/target-health alarms, dashboard, security groups, Application Load Balancer, and target group. Supply an existing VPC, at least two public subnets, and a Secrets Manager ARN containing `OPENAI_API_KEY`. Follow [the end-to-end guide](project_to_aws.md) and the [project observability runbook](../projects/README.md#12-observe-and-operate-the-project).

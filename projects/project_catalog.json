@@ -1,0 +1,50 @@
+{
+  "comparison_travel_agent": {
+    "no_framework": {
+      "context": "projects/comparison_agent/no_framework",
+      "port": 7860,
+      "evaluator": "comparison"
+    },
+    "openai_agents_sdk": {
+      "context": "projects/comparison_agent/openai_agents_sdk",
+      "port": 7860,
+      "evaluator": "comparison"
+    }
+  },
+  "travel_planner_agent": {
+    "no_framework": {
+      "context": "projects/no_framework_projects/travel_planner_agent",
+      "port": 7860,
+      "evaluator": "project"
+    },
+    "openai_agents_sdk": {
+      "context": "projects/openai_agents_sdk_projects/travel_planner_agent",
+      "port": 7860,
+      "evaluator": "project"
+    }
+  },
+  "customer_support_router": {
+    "no_framework": {
+      "context": "projects/no_framework_projects/customer_support_router",
+      "port": 7860,
+      "evaluator": "project"
+    },
+    "openai_agents_sdk": {
+      "context": "projects/openai_agents_sdk_projects/customer_support_router",
+      "port": 7860,
+      "evaluator": "project"
+    }
+  },
+  "research_assistant_agent": {
+    "no_framework": {
+      "context": "projects/no_framework_projects/research_assistant_agent",
+      "port": 7860,
+      "evaluator": "project"
+    },
+    "openai_agents_sdk": {
+      "context": "projects/openai_agents_sdk_projects/research_assistant_agent",
+      "port": 7860,
+      "evaluator": "project"
+    }
+  }
+}

@@ -1,0 +1,3 @@
+# Framework selection guide
+
+Start without a framework when teaching the loop or when a small deterministic workflow is enough. Choose OpenAI Agents SDK for OpenAI-centric tools, handoffs, guardrails, and tracing; LangGraph for explicit graphs and durable state; CrewAI for role/task collaboration; AutoGen for AgentChat teams; or Google ADK for its ecosystem. MCP is not an agent framework: use this open protocol when an AI application needs a standard way to discover and access external tools, resources, and prompts. Prototype one representative path and compare testability, state, observability, failure recovery, and lock-in.

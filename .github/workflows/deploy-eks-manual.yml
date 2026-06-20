@@ -1,0 +1,107 @@
+name: Terraform deploy project to EKS
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: Project and framework implementation to deploy
+        required: true
+        type: choice
+        options:
+          - comparison_travel_agent_no_framework
+          - comparison_travel_agent_openai_agents_sdk
+          - travel_planner_agent_no_framework
+          - travel_planner_agent_openai_agents_sdk
+          - customer_support_router_no_framework
+          - customer_support_router_openai_agents_sdk
+          - research_assistant_agent_no_framework
+          - research_assistant_agent_openai_agents_sdk
+      image_tag:
+        description: Optional immutable tag; defaults to the commit SHA
+        required: false
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: aws-project-${{ inputs.project }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen --group dev
+      - run: uv run pytest
+      - id: context
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python scripts/resolve_project.py --selection "${{ inputs.project }}" --image-tag "${{ inputs.image_tag || github.sha }}" --github-output "$GITHUB_OUTPUT"
+      - name: Evaluate selected implementation
+        shell: bash
+        run: |
+          if [[ "${{ steps.context.outputs.evaluator }}" == "comparison" ]]; then
+            uv run python -m evals.run_evals --implementation "${{ steps.context.outputs.implementation }}"
+          else
+            uv run python -m evals.run_project_evals --project "${{ steps.context.outputs.project }}" --implementation "${{ steps.context.outputs.implementation }}"
+          fi
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+      - id: ecr
+        working-directory: infra/terraform/ecr
+        run: |
+          terraform init -input=false -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -backend-config="key=ecr/${{ inputs.project }}.tfstate" -backend-config="region=${{ vars.AWS_REGION }}" -backend-config="encrypt=true" -backend-config="use_lockfile=true"
+          terraform fmt -check
+          terraform validate
+          terraform apply -input=false -auto-approve -var="aws_region=${{ vars.AWS_REGION }}" -var="project_name=${{ inputs.project }}"
+          echo "image=$(terraform output -raw repository_url):${{ steps.context.outputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          echo "repository=$(terraform output -raw repository_name)" >> "$GITHUB_OUTPUT"
+      - id: image-status
+        name: Check for existing immutable image
+        shell: bash
+        run: |
+          if aws ecr describe-images --repository-name "${{ steps.ecr.outputs.repository }}" --image-ids imageTag="${{ steps.context.outputs.image_tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.image-status.outputs.exists != 'true'
+        uses: aws-actions/amazon-ecr-login@v2
+      - if: steps.image-status.outputs.exists != 'true'
+        uses: docker/setup-buildx-action@v3
+      - if: steps.image-status.outputs.exists != 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ steps.context.outputs.context }}
+          push: true
+          platforms: linux/amd64
+          tags: ${{ steps.ecr.outputs.image }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Create runtime secret outside Terraform state
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws eks update-kubeconfig --name "${{ vars.EKS_CLUSTER }}" --region "${{ vars.AWS_REGION }}"
+          kubectl create namespace agentic-ai --dry-run=client -o yaml | kubectl apply -f -
+          secret_value="$(aws secretsmanager get-secret-value --secret-id "${{ vars.OPENAI_SECRET_ARN }}" --query SecretString --output text)"
+          echo "::add-mask::$secret_value"
+          kubectl --namespace agentic-ai create secret generic openai-api --from-literal=OPENAI_API_KEY="$secret_value" --dry-run=client -o yaml | kubectl apply -f -
+      - name: Terraform EKS application
+        working-directory: infra/terraform/eks
+        run: |
+          terraform init -input=false -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -backend-config="key=eks/${{ inputs.project }}.tfstate" -backend-config="region=${{ vars.AWS_REGION }}" -backend-config="encrypt=true" -backend-config="use_lockfile=true"
+          terraform fmt -check
+          terraform validate
+          terraform apply -input=false -auto-approve -var="aws_region=${{ vars.AWS_REGION }}" -var="eks_cluster_name=${{ vars.EKS_CLUSTER }}" -var="project_name=${{ steps.context.outputs.deployment_name }}" -var="image_uri=${{ steps.ecr.outputs.image }}"
+          terraform output >> "$GITHUB_STEP_SUMMARY"

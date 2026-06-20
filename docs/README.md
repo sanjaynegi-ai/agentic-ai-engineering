@@ -1,0 +1,3 @@
+# Documentation
+
+Engineering references: [uv](uv.md), [Jupyter](jupyter.md), [Gradio](gradio.md), [prompting](prompting.md), [structured outputs](structured_outputs.md), [workflow patterns](workflow_patterns.md), [tool calling](tool_calling.md), [agent loop](agent_loop.md), [guardrails](guardrails.md), [observability](observability.md), [cost control](cost_control.md), [evals](evals_and_tests.md), [Docker](docker.md), [Compose](docker_compose.md), [GitHub Actions](github_actions.md), [ECS](aws_ecs_fargate.md), [EKS](aws_eks.md), [AWS services and cleanup](aws_services_and_cleanup.md), and [framework comparison](framework_comparison.md).

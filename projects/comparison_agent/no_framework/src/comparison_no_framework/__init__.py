@@ -1,0 +1,1 @@
+"""No-framework travel agent."""

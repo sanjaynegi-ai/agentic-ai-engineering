@@ -1,0 +1,3 @@
+{"project": "travel_planner_agent", "input": "Plan a 2-day Jaipur trip for 4 people", "field": "city", "expected": "Jaipur"}
+{"project": "customer_support_router", "input": "I was charged twice", "field": "route", "expected": "billing"}
+{"project": "research_assistant_agent", "input": "What do guardrails constrain?", "field": "grounded", "expected": true}

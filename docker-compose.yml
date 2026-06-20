@@ -1,0 +1,12 @@
+services:
+  comparison-no-framework:
+    build: ./projects/comparison_agent/no_framework
+    env_file: .env
+    ports: ["7860:7860"]
+    profiles: ["no-framework"]
+  comparison-openai-agents:
+    build: ./projects/comparison_agent/openai_agents_sdk
+    env_file: .env
+    ports: ["7861:7860"]
+    profiles: ["sdk"]
+# Optional local model/vector services are intentionally omitted from the default course stack.

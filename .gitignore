@@ -16,3 +16,4 @@ evals/reports/
 *.tfstate
 *.tfstate.*
 crash.log
+agent_sessions.db

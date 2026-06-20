@@ -1,0 +1,14 @@
+[
+  {
+    "text": "I was charged twice",
+    "route": "billing"
+  },
+  {
+    "text": "The app crashes",
+    "route": "technical"
+  },
+  {
+    "text": "Delete my account",
+    "route": "account"
+  }
+]

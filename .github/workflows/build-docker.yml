@@ -1,0 +1,11 @@
+name: build-docker
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t agentic-course:${{ github.sha }} projects/comparison_agent/no_framework
